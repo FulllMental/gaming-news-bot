@@ -17,7 +17,7 @@ if __name__ == '__main__':
     while True:
         shazoo_news = get_all_links(shazoo_url, last_check_date)
         for post in shazoo_news:
-            shazoo_picture_url = post['']
+            shazoo_picture_url = post['picture_link']
             bot_message(article_link=post['article_link'], article_title=post['article_title'])
             download_shazoo_picture(directory, shazoo_picture_url)
 
