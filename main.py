@@ -13,14 +13,14 @@ from telegram_bot import bot_message
 
 
 def get_article_text(article_link):
-    response = requests.get(article_link)
-    response.raise_for_status()
+    article_response = requests.get(article_link)
+    article_response.raise_for_status()
 
-    article = BS(response.content, 'html.parser')
-    results = article.find_all('p')
+    article = BS(article_response.content, 'lxml')
+    article_indents = article.find_all('p')
     article = ''
-    for i in results:
-        article += f'{i.text}\n'
+    for indent in article_indents:
+        article += f'{indent.text}\n'
     return article
 
 
@@ -46,6 +46,7 @@ def get_picture_extension(shazoo_picture_url):
 if __name__ == '__main__':
     env = Env()
     env.read_env()
+
     pause_time = env.int('PAUSE_TIME')
     last_check_date = env('LAST_CHECK_DATE')
     shazoo_url = env('SHAZOO_URL')
@@ -56,10 +57,10 @@ if __name__ == '__main__':
         shazoo_news = get_all_links(shazoo_url, last_check_date, blacklist)
         for post in shazoo_news:
             bot_message(article_link=post['article_link'], article_title=post['article_title'])
+
             # shazoo_picture_url = post['picture_link']
             # download_shazoo_picture(directory, shazoo_picture_url)
 
         last_check_date = datetime.utcnow().strftime("%Y-%m-%dT%H:%M")
         print(f'Пост отправлен, следующий пост будет только тот, что запостили после {last_check_date}')
         time.sleep(pause_time)
-
