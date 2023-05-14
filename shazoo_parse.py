@@ -1,19 +1,30 @@
+import logging
+
 import requests
 from bs4 import BeautifulSoup as BS
-
 from environs import Env
 
 
+def get_all_posts(shazoo_url):
 
-def get_all_links(shazoo_url, last_check_date, blacklist):
+    logging.warning('Запрос к shazoo.ru...')
+
     site_response = requests.get(shazoo_url)
     site_response.raise_for_status()
 
-    shazoo_news = []
+    logging.warning('Поиск данных в полученном ответе...')
+
     shazoo_soup = BS(site_response.content, 'lxml')
     posts_selector = 'div.py-6.gap-2'
     posts = shazoo_soup.select(posts_selector)
+    return posts
 
+
+def get_actual_links(posts, blacklist, last_check_date):
+
+    logging.warning('Фильтрация постов...')
+
+    shazoo_news = []
     for post in posts:
         post_date = post.time.attrs['datetime'][:-11]
 
@@ -47,8 +58,12 @@ if __name__ == '__main__':
     env = Env()
     env.read_env()
 
-    last_check_date = env('LAST_CHECK_DATE')
     shazoo_url = env('SHAZOO_URL')
     blacklist = env.list('BLACKLIST')
 
-    get_all_links(shazoo_url, last_check_date, blacklist)
+    logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s",
+                        datefmt="%Y-%m-%d %H:%M:%S")
+
+    posts = get_all_posts(shazoo_url)
+    last_post_date = posts[1].time.attrs['datetime'][:-11]
+    get_actual_links(posts, blacklist, last_post_date)

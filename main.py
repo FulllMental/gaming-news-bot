@@ -1,3 +1,4 @@
+import logging
 import pathlib
 import time
 from datetime import datetime
@@ -8,7 +9,7 @@ import requests
 from bs4 import BeautifulSoup as BS
 from environs import Env
 
-from shazoo_parse import get_all_links
+from shazoo_parse import get_all_posts, get_actual_links
 from telegram_bot import bot_message
 
 
@@ -44,23 +45,43 @@ def get_picture_extension(shazoo_picture_url):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s",
+                        datefmt="%Y-%m-%d %H:%M:%S")
+
     env = Env()
     env.read_env()
 
     pause_time = env.int('PAUSE_TIME')
-    last_check_date = env('LAST_CHECK_DATE')
     shazoo_url = env('SHAZOO_URL')
     blacklist = env.list('BLACKLIST')
-    directory = 'shazoo_images'
 
+    # directory = 'shazoo_images'
+
+    logging.warning('Бот запущен...')
+    last_check_date = 0
+
+    last_check_date = datetime.utcnow().strftime("%Y-%m-%dT%H:%M")
+    # last_check_date = '2023-05-14T06:00:00'
     while True:
-        shazoo_news = get_all_links(shazoo_url, last_check_date, blacklist)
+        posts = get_all_posts(shazoo_url)
+        shazoo_news = get_actual_links(posts, blacklist, last_check_date)
+        last_check_date = datetime.utcnow().strftime("%Y-%m-%dT%H:%M")
+
+        logging.warning(f'Следующий пост будет после {last_check_date}UTC')
+
         for post in shazoo_news:
             bot_message(article_link=post['article_link'], article_title=post['article_title'])
 
             # shazoo_picture_url = post['picture_link']
             # download_shazoo_picture(directory, shazoo_picture_url)
 
-        last_check_date = datetime.utcnow().strftime("%Y-%m-%dT%H:%M")
-        print(f'Пост отправлен, следующий пост будет только тот, что запостили после {last_check_date}')
+            logging.warning('Пост отправлен...')
+            time.sleep(pause_time)
+
+        if shazoo_news:
+            shazoo_news.clear()
+            continue
+
+        logging.warning(f'Ожидание новой итерации через {pause_time}...')
         time.sleep(pause_time)
+

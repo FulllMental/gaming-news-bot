@@ -21,7 +21,6 @@
 
 BLACKLIST='fifa,world of tanks,wot,dota,fall guys'
 
-- `LAST_CHECK_DATE` — в формате `YYYY-MM-DDThh:mm` (`T` это просто T) время старта точки проверки новостей, если необходимо получить все новости за сутки.
 - `SHAZOO_URL` — ссылка на подборку новостей по играм `https://shazoo.ru/tags/419/games`.
 - `TELEGRAM_BOT_API` — ваш код для доступа к использованию телеграм-бота.
 - `TELEGRAM_CHAT_ID` — id канала в который будут поститься новости, например `@my_telegram_channel`.
